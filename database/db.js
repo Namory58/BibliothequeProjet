@@ -5,5 +5,6 @@ const sequelize = new Sequelize(process.env.DATABASENAME,process.env.DB_USER,pro
     host: process.env.HOST,   
     dialect: process.env.DIALECT,
     port: process.env.PORT_DB, 
+    timezone: '+01:00',
 })
 module.exports = sequelize;

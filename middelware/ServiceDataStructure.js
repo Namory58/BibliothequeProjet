@@ -1,4 +1,4 @@
-var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 var passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 var nameRegex = /^[a-zA-Z]+$/;
 var prenomRegex = /^[a-zA-ZÀ-ÖØ-öø-ÿ\s]+$/;

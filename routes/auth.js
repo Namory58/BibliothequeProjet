@@ -6,7 +6,7 @@ const apiRouterAuth = express.Router();
 
 apiRouterAuth.route('/login').post(controllersAth.login);
 apiRouterAuth.route('/register').post(controllersAth.register);
-apiRouterAuth.route('/logout').get(controllersAth.logout);
+apiRouterAuth.route('/logout').post(controllersAth.logout);
 
 
 module.exports = apiRouterAuth;

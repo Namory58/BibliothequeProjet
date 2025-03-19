@@ -21,21 +21,27 @@ module.exports = {
             }
         }
 
-        if (valueVide.length > 0) {
+        if (valueVide.length > 1) {
             return res.status(400).json({
                 error: true,
                 message: "Les champs " + valueVide.join(", ") + " sont obligatoires."
             });
         }
+        if(valueVide.length ===1){
+            return res.status(400).json({
+                error: true,
+                message: "Le champs " + valueVide.join(", ") + " est obligatoire."
+            });
+        }
         try {
-            const {email,password} =req.body;
+            const { email, password } = req.body;
             if (!ServiceDataStructure.isValidEmail(email)) {
-                return res.status(400).json({
+                return res.status(404).json({
                     error: true,
                     message: "L'email n'est pas valide."
                 });
             }
-           
+
             if (!ServiceDataStructure.isValidPassword(password)) {
                 return res.status(400).json({
                     error: true,
@@ -43,30 +49,35 @@ module.exports = {
                 });
             }
             const isAtherant = await Atherant.findOne({ where: { email: email } });
-            if(!isAtherant){
-                return res.status(400).json({
+            if (!isAtherant) {
+                return res.status(401).json({
                     error: true,
-                    message: "email ou mot de passe incorrecte."
+                    message: "Email ou mot de passe incorrecte."
                 });
             }
             const match = await bcrypt.compare(password, isAtherant.password);
-            if(!match){
+            if (!match) {
                 return res.status(400).json({
                     error: true,
                     message: "email ou mot de passe incorrecte."
                 });
             }
             const tokenAtherant = tokenService.createToken(isAtherant);
-        
+            res.cookie("token", tokenAtherant, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'Strict'
+            });
+
             return res.status(200).json({
                 error: false,
                 message: "utilisateur connecté avec succès.",
-                data : {
-                    nom : isAtherant.nom,
-                    prenom : isAtherant.prenom,
-                    email : isAtherant.email,
+                data: {
+                    nom: isAtherant.nom,
+                    prenom: isAtherant.prenom,
+                    email: isAtherant.email,
                 },
-                token : tokenAtherant
+                token: tokenAtherant
             });
 
         } catch (error) {
@@ -76,11 +87,6 @@ module.exports = {
                 data: error
             });
         }
-
-        res.status(200).json({
-            error: false,
-            message: 'Login',
-        })
     },
     register: async function (req, res) {
         const allowedKeys = ["nom", "prenom", "email", "password"];
@@ -132,26 +138,32 @@ module.exports = {
             }
             const cheackUser = await Atherant.findOne({ where: { email: email } });
             if (cheackUser) {
-                return res.status(400).json({
+                return res.status(409).json({
                     error: true,
-                    message: "l'utilisateur existe déjà."
+                    message: "L'utilisateur existe déjà."
                 });
             }
             // Ici, il faut hacher le mot de passe avant de l'enregistrer dans la base de données.
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
-
             let newAtherant = await Atherant.create({
                 nom: nom[0].toUpperCase() + nom.slice(1).toLowerCase(),
                 prenom: prenom.toLowerCase(),
-                email: email,
+                email: email.toLowerCase(),
                 password: hashedPassword
             });
-            return res.status(200).json({
+            return res.status(201).json({
                 error: false,
                 message: "Utilisateur créé avec succès.",
-                data: newAtherant
+                data: {
+                    id: newAtherant.id,
+                    nom: newAtherant.nom,
+                    prenom: newAtherant.prenom,
+                    email: newAtherant.email,
+                    updatedAt: newAtherant.updatedAt,
+                    createdAt: newAtherant.createdAt
+                }
             });
         }
         catch (error) {
@@ -163,9 +175,16 @@ module.exports = {
         }
     },
     logout: async function (req, res) {
-        res.status(200).json({
+        const token = req.header("Authorization");
+        const payload = tokenService.verifyToken(token);
+        if (typeof (payload) === "object") {
+            return res.status(payload.status).json({ error: true, message: payload.message })
+        }
+        res.clearCookie("token", { httpOnly: true, secure: true, sameSite: 'Strict' });
+
+        return res.status(200).json({
             error: false,
-            message: 'Logout',
-        })
+            message: "Déconnexion réussie.",
+        });ﬁ
     },
 };

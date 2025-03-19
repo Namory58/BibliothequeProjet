@@ -11,6 +11,7 @@ var port = process.env.PORT;
 
 const adherentsRouters =require('./routes/adherents');
 const authRouters = require('./routes/auth');
+const livreRouters = require('./routes/livres');
 
 async function authenticateDb(){
     return sequelize.authenticate()
@@ -30,6 +31,7 @@ authenticateDb().then(async () => {
 
 // Routes
 app.use('/v1/api', adherentsRouters); 
+app.use('/v1/api', livreRouters); 
 app.use('/v1/api/adherents', authRouters); 
 
 // Ecoute du serveur
