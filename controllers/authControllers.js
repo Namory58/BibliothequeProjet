@@ -1,38 +1,17 @@
 
 const ServiceDataStructure = require("../middelware/ServiceDataStructure");
 const bcrypt = require('bcrypt');
-const Atherant = require('../models/Adherents');
 const { where } = require("sequelize");
 const tokenService = require('../middelware/tokenService');
+const videService = require('../middelware/videEntity');
+
+const { Adherent } = require("../models");
 
 module.exports = {
     login: async function (req, res) {
         const allowedKeys = ["email", "password"];
-        let valueVide = [];
-        for (const [key, value] of Object.entries(req.body)) {
-            if (!allowedKeys.includes(key)) {
-                return res.status(400).json({
-                    error: true,
-                    message: "Le champ " + key + " n'est pas autorisé."
-                });
-            }
-            if (value === null || value === undefined || value.trim() === "") {
-                valueVide.push(key);
-            }
-        }
-
-        if (valueVide.length > 1) {
-            return res.status(400).json({
-                error: true,
-                message: "Les champs " + valueVide.join(", ") + " sont obligatoires."
-            });
-        }
-        if(valueVide.length ===1){
-            return res.status(400).json({
-                error: true,
-                message: "Le champs " + valueVide.join(", ") + " est obligatoire."
-            });
-        }
+       const erreur = videService.videSpce(req, allowedKeys);
+       if (erreur) return res.status(400).json(erreur);
         try {
             const { email, password } = req.body;
             if (!ServiceDataStructure.isValidEmail(email)) {
@@ -48,22 +27,22 @@ module.exports = {
                     message: "Le mot de passe n'est pas valide et la taille de mot de passe doit être de 8 caractères."
                 });
             }
-            const isAtherant = await Atherant.findOne({ where: { email: email } });
-            if (!isAtherant) {
+            const cheackDataAdherent = await Adherent.findOne({ where: { email: email } });
+            if (!cheackDataAdherent) {
                 return res.status(401).json({
                     error: true,
                     message: "Email ou mot de passe incorrecte."
                 });
             }
-            const match = await bcrypt.compare(password, isAtherant.password);
-            if (!match) {
+            const matchPassword = await bcrypt.compare(password, cheackDataAdherent.password);
+            if (!matchPassword) {
                 return res.status(400).json({
                     error: true,
                     message: "email ou mot de passe incorrecte."
                 });
             }
-            const tokenAtherant = tokenService.createToken(isAtherant);
-            res.cookie("token", tokenAtherant, {
+            const tokenAdherent = tokenService.createToken(cheackDataAdherent);
+            res.cookie("token", tokenAdherent, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'Strict'
@@ -73,11 +52,11 @@ module.exports = {
                 error: false,
                 message: "utilisateur connecté avec succès.",
                 data: {
-                    nom: isAtherant.nom,
-                    prenom: isAtherant.prenom,
-                    email: isAtherant.email,
+                    nom: Adherent.nom,
+                    prenom: Adherent.prenom,
+                    email: Adherent.email,
                 },
-                token: tokenAtherant
+                token: tokenAdherent
             });
 
         } catch (error) {
@@ -89,27 +68,9 @@ module.exports = {
         }
     },
     register: async function (req, res) {
-        const allowedKeys = ["nom", "prenom", "email", "password"];
-        let valueVide = [];
-
-        for (const [key, value] of Object.entries(req.body)) {
-            if (!allowedKeys.includes(key)) {
-                return res.status(400).json({
-                    error: true,
-                    message: "Le champ " + key + " n'est pas autorisé."
-                });
-            }
-            if (value === null || value === undefined || value.trim() === "") {
-                valueVide.push(key);
-            }
-        }
-
-        if (valueVide.length > 0) {
-            return res.status(400).json({
-                error: true,
-                message: "Les champs " + valueVide.join(", ") + " sont obligatoires."
-            });
-        }
+    const allowedKeys =["nom","prenom","email", "password"];
+    const erreur = videService.videSpce(req, allowedKeys);
+    if (erreur) return res.status(400).json(erreur);
         try {
             const { nom, prenom, email, password } = req.body;
             if (!ServiceDataStructure.isValidName(nom) || nom.length > 72) {
@@ -136,8 +97,8 @@ module.exports = {
                     message: "Le mot de passe n'est pas valide et la taille de mot de passe doit être de 8 caractères."
                 });
             }
-            const cheackUser = await Atherant.findOne({ where: { email: email } });
-            if (cheackUser) {
+            const existingUser = await AdherentsModels.findOne({ where: { email: email } });
+            if (existingUser) {
                 return res.status(409).json({
                     error: true,
                     message: "L'utilisateur existe déjà."
@@ -147,7 +108,7 @@ module.exports = {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
-            let newAtherant = await Atherant.create({
+            let newAtherant = await AdherentsModels.create({
                 nom: nom[0].toUpperCase() + nom.slice(1).toLowerCase(),
                 prenom: prenom.toLowerCase(),
                 email: email.toLowerCase(),
@@ -161,8 +122,8 @@ module.exports = {
                     nom: newAtherant.nom,
                     prenom: newAtherant.prenom,
                     email: newAtherant.email,
-                    updatedAt: newAtherant.updatedAt,
-                    createdAt: newAtherant.createdAt
+                    updatedAt: newAtherant.updatedAt.toISOString().split('T')[0],
+                    createdAt: newAtherant.createdAt.toISOString().split('T')[0] 
                 }
             });
         }

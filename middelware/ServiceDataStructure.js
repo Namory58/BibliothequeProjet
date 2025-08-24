@@ -5,7 +5,7 @@ var prenomRegex = /^[a-zA-ZÀ-ÖØ-öø-ÿ\s]+$/;
 
 module.exports = {
     isValidEmail : function(email){
-        return emailRegex.test(email); // qui retourne un booléen (true ou false)
+        return emailRegex.test(email); 
     },
     isValidPassword : function(password){
         return passwordRegex.test(password);

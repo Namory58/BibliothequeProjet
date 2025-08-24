@@ -16,16 +16,14 @@ const Categories = sequelize.define("Categories", {
     timestamps: false,
 });
 
-// Relationships
-Categories.hasMany(require('./Livres'), {
-    foreignKey: 'idCategorie',
-    onDelete: 'SET NULL',
-    onUpdate: 'CASCADE',
-});
-require('./Livres').belongsTo(Categories, {
-    foreignKey: 'idCategorie',
-    onDelete: 'SET NULL',
-    onUpdate: 'CASCADE',
-});
+// Associations à définir dans models/index.js
+Categories.associate = function(models) {
+    Categories.hasMany(models.Livres, {
+        foreignKey: 'idCategorie',
+        as: 'livres',
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+    });
+};
 
 module.exports = Categories;

@@ -1,6 +1,7 @@
 const sequelize = require("../database/db");
 const { DataTypes } = require("sequelize");
 
+
 const Auteurs = sequelize.define("Auteurs", {
     idAuteur: {
         type: DataTypes.INTEGER,
@@ -28,16 +29,14 @@ const Auteurs = sequelize.define("Auteurs", {
     timestamps: false,
 });
 
-// Relationships
-Auteurs.hasMany(require('./Livres'), {
-    foreignKey: 'idAuteur',
-    onDelete: 'SET NULL',
-    onUpdate: 'CASCADE',
-});
-require('./Livres').belongsTo(Auteurs, {
-    foreignKey: 'idAuteur',
-    onDelete: 'SET NULL',
-    onUpdate: 'CASCADE',
-});
+// Définition de l'association dans une méthode dédiée
+Auteurs.associate = function(models) {
+    Auteurs.hasMany(models.Livres, {
+        foreignKey: 'idAuteur',
+        as: 'livres',
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+    });
+};
 
 module.exports = Auteurs;

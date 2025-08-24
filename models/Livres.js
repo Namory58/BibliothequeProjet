@@ -44,15 +44,21 @@ const Livres = sequelize.define("Livres", {
 });
 
 // Relationships
-Livres.hasMany(require('./Emprunts'), {
-    foreignKey: 'idLivre',
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-});
-require('./Emprunts').belongsTo(Livres, {
-    foreignKey: 'idLivre',
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-});
+Livres.associate = function(models) {
+    Livres.belongsTo(models.Auteurs, {
+        foreignKey: 'idAuteur',
+        as: 'auteur'
+    });
+    Livres.belongsTo(models.Categories, {
+        foreignKey: 'idCategorie',
+        as: 'categorie'
+    });
+    Livres.hasMany(models.Emprunts, {
+        foreignKey: 'idLivre',
+        as: 'emprunts',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+};
 
 module.exports = Livres;

@@ -1,6 +1,5 @@
 const sequelize = require("../database/db");
-const { DataTypes, Sequelize } = require("sequelize");
-const Emprunts = require("./Emprunts"); // Import Emprunts model
+const { DataTypes } = require("sequelize");
 
 const Adherents = sequelize.define("Adherents", {
     idAdherent: {
@@ -26,20 +25,18 @@ const Adherents = sequelize.define("Adherents", {
     },
 }, {
     tableName: "adherents",
-        timestamps: true,
-        createdAt: "createdAt",
-        updatedAt: "updatedAt"
+    timestamps: true,
+    createdAt: "createdAt",
+    updatedAt: "updatedAt"
 });
 
-Adherents.hasMany(Emprunts, {
-    foreignKey: 'idAdherent',
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-});
-Emprunts.belongsTo(Adherents, {
-    foreignKey: 'idAdherent',
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-});
+// Associations à définir dans models/index.js
+Adherents.associate = function(models) {
+    Adherents.hasMany(models.Emprunts, {
+        foreignKey: 'idAdherent',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+};
 
 module.exports = Adherents;

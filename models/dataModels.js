@@ -1,29 +1,26 @@
 const auteurs = require('../data/dataAuteurs');
 const livres = require('../data/dataLivres');
-const category = require('../data/dataCategories'); // C'est ici que tu as chargé tes catégories
-
-const Auteur = require('../models/Auteurs');
-const Livre = require('../models/Livres');
-const Categorie = require('../models/categories');
+const category = require('../data/dataCategories');
+const { Auteurs, Livres, Categories } = require('../models'); // Correction ici
 
 async function setData() {
     try {
-        await Auteur.bulkCreate(auteurs);
-        await Categorie.bulkCreate(category);
-        await Livre.bulkCreate(livres);
+        await Auteurs.bulkCreate(auteurs);
+        await Categories.bulkCreate(category);
+        await Livres.bulkCreate(livres);
         for (let i = 0; i < livres.length; i++) {
             const livre = livres[i];
             const auteur = auteurs[i];
             const categorie = category[i];
 
-            const auteurInstance = await Auteur.findOne({
-                where: { idAuteur: auteur.id }
+            const auteurInstance = await Auteurs.findOne({
+                where: { idAuteur: auteur.idAuteur }
             });
-            const categorieInstance = await Categorie.findOne({
-                where: { idCategorie: categorie.id }
+            const categorieInstance = await Categories.findOne({
+                where: { idCategorie: categorie.idCategorie }
             });
-            const livreInstance = await Livre.findOne({
-                where: { idLivre: livre.id }
+            const livreInstance = await Livres.findOne({
+                where: { idLivre: livre.idLivre }
             });
             await livreInstance.setAuteur(auteurInstance);
             livreInstance.idCategorie = categorieInstance.idCategorie;
@@ -36,9 +33,9 @@ async function setData() {
 }
 
 async function cheackData() {
-    const countAuteur = await Auteur.count();
-    const countCategorie = await Categorie.count();
-    const countLivre = await Livre.count();
+    const countAuteur = await Auteurs.count();
+    const countCategorie = await Categories.count();
+    const countLivre = await Livres.count();
     if(countAuteur === 0 && countCategorie === 0 && countLivre === 0){
         await setData();
     }
